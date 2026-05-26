@@ -1,32 +1,70 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import useGlobalReducer from "../hooks/useGlobalReducer"
+import { Navigate, useParams } from "react-router-dom"
 
 export default function AddContacts() {
+  const {store, dispatch} =useGlobalReducer()
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
-    phone: "",
     address: "",
+    phone: "",
+    email: "",
   })
+  const {id} = useParams()
 
+useEffect(()=> {
+  //Editando
+    if(id){
+      let contact =   store.contacts.find(e => e.id === parseInt(id))
+      setFormData(contact)
+    }
+}, [])
+  console.log(store, id);
+  
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+  
+    try {
+      if(id){
+        await fetch("https://playground.4geeks.com/contact/agendas/yrendongar/contacts/", + id ,{
+        method: "PUT",
+        body: JSON.stringify(formData),
+        headers: {
+          'Content-Type': 'aplication/json'
+        }
+      })
+      alert("Editado Correctamente")
+      }else{
+      await fetch("https://playground.4geeks.com/contact/agendas/yrendongar/contacts", {
+        method: "POST",
+        body: JSON.stringify(formData),
+        headers: {
+          'Content-Type': 'aplication/json'
+        }
+      })
+      alert("Creado Correctamente")
+      }
+      navigate("/")
+
+    } catch (error) {
+        console.log(error)
+    }
+  }
+  
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    console.log(formData);
-    console.log("Hola");
-    
-    
-  } 
-
   return (
     <div className="card border-0 shadow-sm" style={{ maxWidth: "600px", margin: "0 auto" }}>
       <div className="card-body p-4">
-        <h2 className="text-center mb-4 fw-bold">Agrega Un Nuevo Contacto</h2>
+        <h2 className="text-center mb-4 fw-bold">
+          {id ? "Update" : "Agrega Un Nuevo Contacto"}
+        </h2>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
